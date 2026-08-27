@@ -1,5 +1,5 @@
 {
-  "name": "transport",
+  "name": "gtfs",
   "exports": {
     ".": {
       "types": "./index.ts",

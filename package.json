@@ -10,7 +10,7 @@
     "pipeline": "eslint & ls-lint & pnpm stylelint & prettier --write . & pnpm spell & knip & pnpm build"
   },
   "dependencies": {
-    "transport": "workspace:*",
+    "gtfs": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
