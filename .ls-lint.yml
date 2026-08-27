@@ -1,0 +1,48 @@
+ls:
+  # General
+  ".js": kebab-case
+  ".mjs": kebab-case
+
+  ".json": kebab-case
+
+  ".ts": kebab-case
+  ".d.ts": kebab-case
+
+  ".css": kebab-case
+  ".module.css": kebab-case
+
+  # Client-files Naming Conventions
+  ".tsx": PascalCase | regex:main
+  ".hook.ts": kebab-case
+  ".function.ts": kebab-case
+  ".constant.ts": kebab-case
+
+  ".interface.ts": kebab-case
+  ".type.ts": kebab-case
+  ".enum.ts": kebab-case
+
+  ".config.ts": kebab-case
+
+  # Server-files Naming Conventions
+  ".module.ts": kebab-case
+  ".controller.ts": kebab-case
+  ".service.ts": kebab-case
+
+  ".dto.ts": kebab-case
+  ".schema.ts": kebab-case
+  ".entity.ts": kebab-case
+
+  # Testing-files Naming Conventions
+  ".test.ts": kebab-case
+  ".e2e.ts": kebab-case
+  ".integration.ts": kebab-case
+  ".unit.ts": kebab-case
+  ".spec.ts": kebab-case
+  ".cy.ts": kebab-case
+
+ignore:
+  - "**/node_modules"
+  - "**/build"
+  - "**/storage"
+  - "**/.*" # NOTE: Ignore all dot-files.
+  - "**/src/migrations"

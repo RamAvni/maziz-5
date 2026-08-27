@@ -1,0 +1,33 @@
+{
+  "name": "Maziz",
+  "type": "module",
+  "scripts": {
+    "start": "bash ./run.sh",
+    "build": "tsc",
+    "prettier": "prettier --check . --ignore-path ./.prettierignore --ignore-path ./.gitignore --ignore-path ./apps/client/.gitignore --ignore-path ./server/.gitignore",
+    "stylelint": "stylelint **/*.css",
+    "spell": "cspell **",
+    "pipeline": "eslint & ls-lint & pnpm stylelint & prettier --write . & pnpm spell & knip & pnpm build"
+  },
+  "dependencies": {
+    "transport": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@ls-lint/ls-lint": "catalog:",
+    "@types/node": "catalog:",
+    "cspell": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "knip": "catalog:",
+    "prettier": "catalog:",
+    "stylelint": "catalog:",
+    "stylelint-config-standard": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
+}
