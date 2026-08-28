@@ -9,6 +9,6 @@ export async function handleApiRequest(
     case "/api/agencies":
       const zip = await tryingZipFiles();
 
-      if (zip) res.end(await readZip64File(zip));
+      if (zip) res.end(JSON.stringify(await readZip64File(zip)));
   }
 }
