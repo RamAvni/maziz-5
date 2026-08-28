@@ -41,14 +41,11 @@ function MSDosTimeToString(MSDosTime: number) {
 
 export async function tryingZipFiles() {
   console.log("tryingZipFiles");
-  // const res = await fetch(
+  const url = "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip";
   //   "https://gtfs.mot.gov.il/gtfsfiles/israel-public-transportation.zip",
-  // );
-  const res = await fetch(
-    "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip",
-  );
+  const res = await fetch(url);
   const length = Number(res.headers.get("Content-Length"));
-  const fileName = "israel-public-transportation.zip";
+  const fileName = url.split("/").at(-1);
   if (!length || !res.body) return;
 
   const zipFile = new Uint8Array(length);
@@ -57,7 +54,7 @@ export async function tryingZipFiles() {
     zipFile.set(chunk, offset);
     offset += chunk.length;
     logger(
-      `Downloading "${fileName}" --> ${offset} / ${length}, %${((offset / length) * 100).toFixed(2)}`,
+      `Downloading "${fileName}" --> ${offset} / ${length}, %${((offset / length) * 100).toFixed(0)}`,
       "info",
     );
   }
@@ -69,7 +66,7 @@ export async function tryingZipFiles() {
  * {@link https://en.wikipedia.org/wiki/ZIP_(file_format)|ZIP (Wikipedia)}
  * and {@link https://en.wikipedia.org/wiki/ZIP_(file_format)#ZIP64|ZIP#ZIP64 (Wikipedia)}
  * TODO: remove the need for the zipFile since we got view*/
-function getZip64FileHeaders(
+export function getZip64FileHeaders(
   zipFile: Uint8Array,
   view: DataView,
   offset: number,
@@ -116,14 +113,58 @@ function getZip64FileHeaders(
   };
 }
 
-export function readZip64File(zipFile: Uint8Array) {
+async function decompressZip64File(
+  zipFile: Uint8Array,
+  view: DataView,
+  headers: ZippedFileHeaders,
+) {
+  console.log("decompressZip64File");
+  if (headers.compressionMethod != 8)
+    throw new Error("unsupported zip compression method");
+  if (
+    headers.extra.uncompressedFileSize >= Number.MAX_SAFE_INTEGER ||
+    headers.extra.compressedDataSize >= Number.MAX_SAFE_INTEGER
+  )
+    throw new Error("TODO: support larger numbers");
+
+  const decompressionStream = new DecompressionStream("deflate-raw");
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        view.buffer.slice(
+          0 + 30 + headers.fileNameLength + headers.extraLength,
+          0 +
+            30 +
+            headers.fileNameLength +
+            headers.extraLength +
+            Number(headers.extra.compressedDataSize),
+        ),
+      );
+      controller.close();
+    },
+  });
+  const readable = stream.pipeThrough(decompressionStream);
+
+  const file = new Uint8Array(Number(headers.extra.uncompressedFileSize));
+  let offset = 0;
+  for await (const chunk of readable) {
+    file.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return file;
+}
+
+export async function readZip64File(zipFile: Uint8Array) {
   const view = new DataView(
     zipFile.buffer,
     zipFile.byteOffset,
     zipFile.byteLength,
   );
   let offset = 0;
-  const flags = getZip64FileHeaders(zipFile, view, offset);
-
-  console.dir(flags);
+  const headers = getZip64FileHeaders(zipFile, view, offset);
+  const decompressedBytes = await decompressZip64File(zipFile, view, headers);
+  const decoder = new TextDecoder();
+  const stringified = decoder.decode(decompressedBytes);
+  return stringified;
 }

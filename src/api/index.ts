@@ -8,8 +8,7 @@ export async function handleApiRequest(
   switch (req.url) {
     case "/api/agencies":
       const zip = await tryingZipFiles();
-      if (zip) {
-        const string = readZip64File(zip);
-      }
+
+      if (zip) res.end(await readZip64File(zip));
   }
 }
