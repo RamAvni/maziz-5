@@ -32,6 +32,7 @@ function main() {
     });
     req.on("end", () => {
       req.body = body;
+      logger(url, "info");
       if (url.startsWith("/api")) void handleApiRequest(req, res);
       else void provideStaticResource(url, res);
     });
