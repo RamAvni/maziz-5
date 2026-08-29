@@ -1,4 +1,4 @@
-import { logger } from "./logger.js";
+import { type AgencyFile } from "gtfs";
 
 /** {@link https://en.wikipedia.org/wiki/ZIP_(file_format)#ZIP64:~:text=ZIP64edit|Wikipedia} */
 interface Zip64ExtraFileHeader {
@@ -42,10 +42,8 @@ function MSDosTimeToString(MSDosTime: number) {
 }
 
 export async function tryingZipFiles() {
-  console.log("tryingZipFiles");
   // const url = "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip";
-  const url =
-    "https://gtfs.mot.gov.il/gtfsfiles/israel-public-transportation.zip";
+  const url = "http://localhost:8080/api/agencies";
   const res = await fetch(url);
   const length = Number(res.headers.get("Content-Length"));
   const fileName = url.split("/").at(-1);
@@ -56,9 +54,8 @@ export async function tryingZipFiles() {
   for await (const chunk of res.body) {
     zipFile.set(chunk, offset);
     offset += chunk.length;
-    logger(
+    console.info(
       `Downloading "${fileName}" --> ${offset} / ${length}, %${((offset / length) * 100).toFixed(0)}`,
-      "info",
     );
   }
 
@@ -115,7 +112,7 @@ export function getZip64FileHeaders(
     },
   };
 
-  if (headers.compressionMethod != 8)
+  if (headers.compressionMethod !== 8)
     throw new Error("unsupported zip compression method");
   if (
     headers.extra.uncompressedFileSize >= Number.MAX_SAFE_INTEGER ||
@@ -133,8 +130,6 @@ async function decompressZip64File(
   fileStartsAt: number,
   fileEndsAt: number,
 ) {
-  console.log("decompressZip64File");
-
   const decompressionStream = new DecompressionStream("deflate-raw");
   const stream = new ReadableStream({
     start(controller) {
@@ -154,6 +149,10 @@ async function decompressZip64File(
   return file;
 }
 
+interface ReadZippedfile {
+  headers: ZippedFileHeaders;
+  stringified: string | string[];
+}
 export async function readZip64File(zipFile: Uint8Array) {
   const view = new DataView(
     zipFile.buffer,
@@ -162,14 +161,12 @@ export async function readZip64File(zipFile: Uint8Array) {
   );
   let offset = 0;
 
-  const files: (string | string[])[] = [];
+  const files: ReadZippedfile[] = [];
   while (true) {
     const signature = view.getUint32(offset, true);
+    // local file
     if (signature === 0x04034b50) {
-      console.log("case 1");
-      // local file
       const headers = getZip64FileHeaders(zipFile, view, offset);
-      console.log(headers);
       const fileStartsAt =
         offset + 30 + headers.fileNameLength + headers.extraLength;
       const fileEndsAt =
@@ -202,10 +199,8 @@ export async function readZip64File(zipFile: Uint8Array) {
         stringified = decoder.decode(decompressedBytes);
       }
 
-      files.push(stringified);
+      files.push({ headers, stringified });
       offset = fileEndsAt;
-      console.log("fileEndsAt:", fileEndsAt);
-      console.log("offset:", offset);
     }
     // central directory
     else if (signature === 0x02014b50) {
@@ -215,10 +210,66 @@ export async function readZip64File(zipFile: Uint8Array) {
     else if (signature === 0x06054b50) {
       break;
     } else {
-      logger(`got garbage! ${signature}`, "error");
+      console.error(`got garbage! ${signature}`);
       break;
     }
   }
-  console.log(files);
   return files;
 }
+
+function normalizeCsvTextFile(stringifiedFile: string | string[]) {
+  console.log("normalizeCsvTextFile");
+  const newRows: object[] = [];
+  if (typeof stringifiedFile === "string") {
+    const rows = stringifiedFile
+      .replaceAll("\r", "")
+      .split("\n") // All gtfs file must end their row with a new line.
+      .map((row) => row.split(","));
+
+    for (let i = 1; i < rows.length; i++) {
+      newRows[i] = {};
+      for (let j = 0; j < rows[0].length; j++) {
+        const key = rows[0][j];
+        const value = rows[i][j];
+        newRows[i][key] = value;
+      }
+    }
+    return newRows;
+  } else {
+    const rows = stringifiedFile.reduce((prev, str) => {
+      return [
+        ...prev,
+        ...str
+          .replaceAll("\r", "")
+          .split("\n")
+          .map((row) => row.split(",")),
+      ];
+    }, []);
+
+    for (let i = 1; i < rows.length; i++) {
+      newRows[i] = {};
+      for (let j = 0; j < rows[0].length; j++) {
+        const key = rows[0][j];
+        const value = rows[i][j];
+        newRows[i][key] = value;
+      }
+    }
+    return newRows;
+  }
+}
+
+tryingZipFiles().then(async (result) => {
+  if (result) {
+    const stringifiedFiles = await readZip64File(result);
+    const files = stringifiedFiles.reduce(
+      (prevObj, currentFile) => ({
+        ...prevObj,
+        [currentFile.headers.fileName]: normalizeCsvTextFile(
+          currentFile.stringified,
+        ),
+      }),
+      {},
+    );
+    console.log(files);
+  }
+});
