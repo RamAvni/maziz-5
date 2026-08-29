@@ -41,7 +41,7 @@ function MSDosTimeToString(MSDosTime: number) {
   return `${hour}:${minute}:${seconds}`;
 }
 
-export async function tryingZipFiles() {
+export async function getMotGtfsZipFile() {
   // const url = "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip";
   const url = "http://localhost:8080/api/agencies";
   const res = await fetch(url);
@@ -258,18 +258,18 @@ function normalizeCsvTextFile(stringifiedFile: string | string[]) {
   }
 }
 
-tryingZipFiles().then(async (result) => {
-  if (result) {
-    const stringifiedFiles = await readZip64File(result);
-    const files = stringifiedFiles.reduce(
-      (prevObj, currentFile) => ({
-        ...prevObj,
-        [currentFile.headers.fileName]: normalizeCsvTextFile(
-          currentFile.stringified,
-        ),
-      }),
-      {},
-    );
-    console.log(files);
-  }
-});
+// tryingZipFiles().then(async (result) => {
+//   if (result) {
+//     const stringifiedFiles = await readZip64File(result);
+//     const files = stringifiedFiles.reduce(
+//       (prevObj, currentFile) => ({
+//         ...prevObj,
+//         [currentFile.headers.fileName]: normalizeCsvTextFile(
+//           currentFile.stringified,
+//         ),
+//       }),
+//       {},
+//     );
+//     console.log(files);
+//   }
+// });

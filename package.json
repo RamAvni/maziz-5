@@ -10,8 +10,9 @@
     "pipeline": "eslint & ls-lint & pnpm stylelint & prettier --write . & pnpm spell & knip & pnpm build"
   },
   "dependencies": {
-    "gtfs": "workspace:*",
+    "@sqlite.org/sqlite-wasm": "catalog:",
     "dotenv": "catalog:",
+    "gtfs": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

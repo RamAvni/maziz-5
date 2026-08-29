@@ -1,4 +1,4 @@
-import { type ServerResponse } from "node:http";
+import { IncomingMessage, type ServerResponse } from "node:http";
 import { join as joinPath } from "path";
 import { logger } from "../common/functions/logger.js";
 import { readFile } from "node:fs";
@@ -7,7 +7,10 @@ import { setError } from "../common/functions/set-error.js";
 function getContentType(fileSuffix: string) {
   switch (fileSuffix) {
     case ".js":
+    case ".mjs":
       return `text/javascript`;
+    case ".wasm":
+      return `application/wasm`;
     case ".html":
     case ".css":
       return `text/${fileSuffix.replace(".", "")}`;
@@ -16,10 +19,19 @@ function getContentType(fileSuffix: string) {
   }
 }
 
-function processRequestUrl(url: string, res: ServerResponse) {
-  let filePath = joinPath(import.meta.dirname, "/static", url);
+function processRequestUrl(
+  reqUrl: IncomingMessage["url"],
+  res: ServerResponse,
+) {
+  if (!reqUrl) return;
+  const { pathname } = new URL(
+    `http://${process.env.HOST ?? "localhost"}${reqUrl}`,
+  );
+  let filePath = reqUrl.includes("node_modules")
+    ? joinPath(import.meta.dirname, "../../", pathname)
+    : joinPath(import.meta.dirname, "/static", pathname);
 
-  if (url.at(-1) === "/" || !url.split("/").at(-1)?.includes("."))
+  if (pathname.at(-1) === "/" || !pathname.split("/").at(-1)?.includes("."))
     filePath = joinPath(filePath, "index.html");
 
   const fileSuffix = filePath.match(/\.\w+$/)?.[0];
@@ -31,7 +43,10 @@ function processRequestUrl(url: string, res: ServerResponse) {
   return { filePath, fileSuffix };
 }
 
-export function provideStaticResource(reqUrl: string, res: ServerResponse) {
+export function provideStaticResource(
+  reqUrl: IncomingMessage["url"],
+  res: ServerResponse,
+) {
   const processedUrl = processRequestUrl(reqUrl, res);
   if (!processedUrl) {
     setError(res, new Error("Error while processing request url"));
@@ -39,7 +54,7 @@ export function provideStaticResource(reqUrl: string, res: ServerResponse) {
   }
   const { filePath, fileSuffix } = processedUrl;
 
-  readFile(filePath, "utf8", (err, data) => {
+  readFile(filePath, (err, data) => {
     if (err) {
       setError(res, err);
       return;
@@ -47,6 +62,12 @@ export function provideStaticResource(reqUrl: string, res: ServerResponse) {
 
     res.writeHead(200, {
       "Content-Type": getContentType(fileSuffix),
+      ...(reqUrl?.includes("wasm")
+        ? { "Cross-Origin-Opener-Policy": "same-origin" }
+        : {}),
+      ...(reqUrl?.includes("wasm")
+        ? { "Cross-Origin-Embedder-Policy": "require-corp" }
+        : {}),
       "x-content-type-options": "no-sniff",
     });
 

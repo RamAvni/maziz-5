@@ -8,6 +8,13 @@
   </head>
   <body>
     <h1>Hello!</h1>
+
+    <!-- This part translates modules specifiers, into their paths. NOTE: Does NOT work for WebWorkers! -->
+    <script type="importmap">
+      {
+        "imports": {}
+      }
+    </script>
     <script type="module" src="index.js"></script>
     <script type="module" src="zip.js"></script>
   </body>
