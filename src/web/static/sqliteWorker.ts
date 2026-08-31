@@ -30,7 +30,7 @@ async function main() {
   const db = await initializeSqliteAndDb();
   if (!db) return;
   const hi = db.selectObjects("SELECT * FROM sqlite_schema WHERE type='table'");
-  // await getMotGtfsZipFile();
+  await getMotGtfsZipFile();
   postMessage(hi);
 }
 
