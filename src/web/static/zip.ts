@@ -1,5 +1,3 @@
-import { type AgencyFile } from "gtfs";
-
 /** {@link https://en.wikipedia.org/wiki/ZIP_(file_format)#ZIP64:~:text=ZIP64edit|Wikipedia} */
 interface Zip64ExtraFileHeader {
   headerId: number;
@@ -42,7 +40,6 @@ function MSDosTimeToString(MSDosTime: number) {
 }
 
 export async function getMotGtfsZipFile() {
-  // const url = "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip";
   const url = "http://localhost:8080/api/agencies";
   const res = await fetch(url);
   const length = Number(res.headers.get("Content-Length"));
@@ -66,7 +63,7 @@ export async function getMotGtfsZipFile() {
  * {@link https://en.wikipedia.org/wiki/ZIP_(file_format)|ZIP (Wikipedia)}
  * and {@link https://en.wikipedia.org/wiki/ZIP_(file_format)#ZIP64|ZIP#ZIP64 (Wikipedia)}
  * TODO: remove the need for the zipFile since we got view*/
-export function getZip64FileHeaders(
+export function getZip64ZippedFileHeaders(
   zipFile: Uint8Array,
   view: DataView,
   offset: number,
@@ -123,7 +120,7 @@ export function getZip64FileHeaders(
   return headers;
 }
 
-async function decompressZip64File(
+async function decompressZip64ZippedFile(
   zipFile: Uint8Array,
   view: DataView,
   headers: ZippedFileHeaders,
@@ -149,11 +146,17 @@ async function decompressZip64File(
   return file;
 }
 
-interface ReadZippedfile {
+export interface ReadZippedfile {
   headers: ZippedFileHeaders;
   stringified: string | string[];
 }
-export async function readZip64File(zipFile: Uint8Array) {
+export async function readZip64File(
+  zipFile: Uint8Array,
+  callback?: (
+    headers: ZippedFileHeaders,
+    stringifiedZipFile: string | string[],
+  ) => void,
+) {
   const view = new DataView(
     zipFile.buffer,
     zipFile.byteOffset,
@@ -166,12 +169,12 @@ export async function readZip64File(zipFile: Uint8Array) {
     const signature = view.getUint32(offset, true);
     // local file
     if (signature === 0x04034b50) {
-      const headers = getZip64FileHeaders(zipFile, view, offset);
+      const headers = getZip64ZippedFileHeaders(zipFile, view, offset);
       const fileStartsAt =
         offset + 30 + headers.fileNameLength + headers.extraLength;
       const fileEndsAt =
         fileStartsAt + Number(headers.extra.compressedDataSize);
-      const decompressedBytes = await decompressZip64File(
+      const decompressedBytes = await decompressZip64ZippedFile(
         zipFile,
         view,
         headers,
@@ -199,6 +202,7 @@ export async function readZip64File(zipFile: Uint8Array) {
         stringified = decoder.decode(decompressedBytes);
       }
 
+      if (callback) callback(headers, stringified);
       files.push({ headers, stringified });
       offset = fileEndsAt;
     }
@@ -217,8 +221,9 @@ export async function readZip64File(zipFile: Uint8Array) {
   return files;
 }
 
-function normalizeCsvTextFile(stringifiedFile: string | string[]) {
-  console.log("normalizeCsvTextFile");
+export function normalizeCsvTextFile(
+  stringifiedFile: string | string[],
+): object[] {
   const newRows: object[] = [];
   if (typeof stringifiedFile === "string") {
     const rows = stringifiedFile
@@ -257,19 +262,3 @@ function normalizeCsvTextFile(stringifiedFile: string | string[]) {
     return newRows;
   }
 }
-
-// tryingZipFiles().then(async (result) => {
-//   if (result) {
-//     const stringifiedFiles = await readZip64File(result);
-//     const files = stringifiedFiles.reduce(
-//       (prevObj, currentFile) => ({
-//         ...prevObj,
-//         [currentFile.headers.fileName]: normalizeCsvTextFile(
-//           currentFile.stringified,
-//         ),
-//       }),
-//       {},
-//     );
-//     console.log(files);
-//   }
-// });

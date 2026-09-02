@@ -2,9 +2,12 @@
   "name": "gtfs",
   "exports": {
     ".": {
-      "types": "./index.ts",
-      "import": "./build/index.js",
-      "require": "./build/index.js,"
+      "types": "./index.d.mts",
+      "import": "./build/index.mjs",
+      "require": "./build/index.mjs",
+      "node": "./build/index.mjs,",
+      "browser": "./build/index.mjs,",
+      "main": "./build/index.mjs,"
     }
   },
   "scripts": {},

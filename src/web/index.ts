@@ -27,9 +27,12 @@ function processRequestUrl(
   const { pathname } = new URL(
     `http://${process.env.HOST ?? "localhost"}${reqUrl}`,
   );
-  let filePath = reqUrl.includes("node_modules")
-    ? joinPath(import.meta.dirname, "../../", pathname)
-    : joinPath(import.meta.dirname, "/static", pathname);
+  let filePath: string;
+  if (reqUrl.includes("node_modules") || reqUrl.includes("packages")) {
+    filePath = joinPath(import.meta.dirname, "../../", pathname);
+  } else {
+    filePath = joinPath(import.meta.dirname, "/static", pathname);
+  }
 
   if (pathname.at(-1) === "/" || !pathname.split("/").at(-1)?.includes("."))
     filePath = joinPath(filePath, "index.html");

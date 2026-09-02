@@ -3,10 +3,10 @@ import { logger } from "../common/functions/logger.js";
 
 export async function getMotGtfsZipFile(isModifiedSince?: string) {
   console.log("tryingZipFiles");
-  const url = "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip";
+  // const url = "https://gtfs.mot.gov.il/gtfsfiles/ClusterToLine.zip";
 
-  // const url =
-  //   "https://gtfs.mot.gov.il/gtfsfiles/israel-public-transportation.zip";
+  const url =
+    "https://gtfs.mot.gov.il/gtfsfiles/israel-public-transportation.zip";
   const res = await fetch(url);
   const length = Number(res.headers.get("Content-Length"));
   const lastModified = res.headers.get("last-modified");

@@ -1,6 +1,7 @@
 start() {
 	echo "Removing existing build directory"
 	rm -rf build 
+	rm -rf ./packages/**/build
 
 	echo "Compiling..."
 	pnpm tsc -b # Build the whole project
