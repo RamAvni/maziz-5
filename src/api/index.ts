@@ -53,6 +53,7 @@ export async function handleApiRequest(
         Date: new Date().toUTCString(),
         "cache-control": `private, max-age=${60 * 60 * 24}`,
         "last-modified": `${zipFileResult?.lastModified}`,
+        "content-length": zipFileResult?.zipFile?.length,
       });
       res.end(zipFileResult?.zipFile);
       logger("Sent the .zip file", "debug");
