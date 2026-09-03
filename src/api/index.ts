@@ -51,7 +51,6 @@ export async function handleApiRequest(
       res.writeHead(200, {
         "Content-Type": "application/zip",
         Date: new Date().toUTCString(),
-        "cache-control": `private, max-age=${60 * 60 * 24}`,
         "last-modified": `${zipFileResult?.lastModified}`,
         "content-length": zipFileResult?.zipFile?.length,
       });
