@@ -1,3 +1,5 @@
+import { logger } from "../../common/functions/logger.js";
+
 /** {@link https://en.wikipedia.org/wiki/ZIP_(file_format)#ZIP64:~:text=ZIP64edit|Wikipedia} */
 interface Zip64ExtraFileHeader {
   headerId: number;
@@ -40,8 +42,17 @@ function MSDosTimeToString(MSDosTime: number) {
 }
 
 export async function getMotGtfsZipFile() {
+  const cache = await caches.open("mot-gtfs-zip-file");
   const url = "http://localhost:8080/api/agencies";
-  const res = await fetch(url);
+  const cachedResponse = await cache.match(url);
+  let res = cachedResponse;
+  if (res) console.debug("Retrived from cache!");
+  if (!res) {
+    await cache.add(url);
+    res = await cache.match(url);
+  }
+  if (!res) throw new Error("Something went wrong with the cache");
+
   const length = Number(res.headers.get("Content-Length"));
   const fileName = url.split("/").at(-1);
   if (!length || !res.body) return;
