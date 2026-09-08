@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfigSrc.json" },
-    { "path": "./packages/gtfs" }
+    { "path": "./packages/gtfs" },
+    { "path": "./tsconfigSrc.json" }
   ]
 }

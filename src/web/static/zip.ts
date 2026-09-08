@@ -168,6 +168,7 @@ export async function readZip64File(
     stringifiedZipFile: string | string[],
   ) => void,
 ) {
+  console.log("Reading Zip File....");
   const view = new DataView(
     zipFile.buffer,
     zipFile.byteOffset,
@@ -229,6 +230,7 @@ export async function readZip64File(
       break;
     }
   }
+  console.log("Done Reading Zip File....");
   return files;
 }
 

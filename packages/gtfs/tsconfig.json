@@ -4,6 +4,6 @@
     "rootDir": ".",
     "outDir": "./build"
   },
-  "include": ["**/*.ts", "**/*.d.ts", "**/*.mts", "**/*.d.mts"],
+  "include": ["./index.mts", "consts", "types"],
   "exclude": ["node_modules", "build"]
 }

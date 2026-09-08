@@ -5,35 +5,35 @@
  * TODO: implement the conditional
  */
 export const datasetFileNames = {
-  agencies: "agencies.txt",
+  agency: "agency.txt",
   /** NOTE: Optional if demand-responsive zones are defined in locations.geojson. */
   stops: "stops.txt",
   routes: "routes.txt",
   trips: "trips.txt",
-  stopTimes: "stop_times.txt",
+  stop_times: "stop_times.txt",
 
   /** NOTE: Required unless all dates of service are defined in calendar_dates.txt. */
   calendar: "calendar.txt",
   /** NOTE: Required if calendar.txt is omitted. In which case calendar_dates.txt must contain all dates of service. */
-  calendarDates: "calendar_dates.txt",
+  calendar_dates: "calendar_dates.txt",
 
-  fareAttributes: "fare_attributes.txt",
-  fareRules: "fare_rules.txt",
+  fare_attributes: "fare_attributes.txt",
+  fare_rules: "fare_rules.txt",
   timeframes: "timeframes.txt",
-  riderCategories: "rider_categories.txt",
-  fareMedia: "fare_media.txt",
-  fareProducts: "fare_products.txt",
-  fareLegRules: "fare_leg_rules.txt",
-  fareLegJoinRules: "fare_leg_join_rules.txt",
-  fareTransferRules: "fare_transfer_rules.txt",
+  rider_categories: "rider_categories.txt",
+  fare_media: "fare_media.txt",
+  fare_products: "fare_products.txt",
+  fare_leg_rules: "fare_leg_rules.txt",
+  fare_leg_join_rules: "fare_leg_join_rules.txt",
+  fare_transfer_rules: "fare_transfer_rules.txt",
 
   areas: "areas.txt",
-  stopAreas: "stop_areas.txt",
+  stop_areas: "stop_areas.txt",
 
   /** Forbidden if network_id exists in routes.txt. */
   networks: "networks.txt",
   /** Forbidden if network_id exists in routes.txt. */
-  routeNetworks: "route_networks.txt",
+  route_networks: "route_networks.txt",
 
   shapes: "shapes.txt",
   frequencies: "frequencies.txt",
@@ -42,10 +42,10 @@ export const datasetFileNames = {
   /** NOTE: Required when describing pathways with elevators (pathway_mode=5). */
   levels: "levels.txt",
 
-  locationGroups: "location_groups.txt",
-  locationGroupStops: "location_group_stops.txt",
+  location_groups: "location_groups.txt",
+  location_group_stops: "location_group_stops.txt",
   locations: "locations.geojson",
-  bookingRules: "booking_rules.txt",
+  booking_rules: "booking_rules.txt",
   translations: "translations.txt",
   /** NOTE: Required if translations.txt is provided. */
   feedInfo: "feed_info.txt",

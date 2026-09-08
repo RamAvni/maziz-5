@@ -10,12 +10,13 @@
     "target": "ES2023",
     "esModuleInterop": true,
     "sourceMap": true,
-    "incremental": false,
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "composite": true,
+    "incremental": true
   }
 }

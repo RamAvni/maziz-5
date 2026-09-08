@@ -5,10 +5,17 @@
 import sqlite3InitModule, {
   type Database,
 } from "../../../node_modules/@sqlite.org/sqlite-wasm/dist/index.mjs";
-import { getMotGtfsZipFile, readZip64File, ReadZippedfile } from "./zip.js";
+import {
+  getMotGtfsZipFile,
+  normalizeCsvTextFile,
+  readZip64File,
+  ReadZippedfile,
+} from "./zip.js";
 
-// @ts-expect-error -- idk why it errors
+// @ts-ignore -- idk why it errors
 import { datasetFileNames } from "../../../packages/gtfs/build/consts/datasetFileNames.mjs";
+// @ts-ignore -- idk why it errors
+import { sqlCreateTableCommands } from "../../../packages/gtfs/build/consts/sqlCommands.mjs";
 
 async function initializeSqliteAndDb() {
   try {
@@ -23,6 +30,7 @@ async function initializeSqliteAndDb() {
         ? `OPFS is available, created persisted database at ${db.filename}`
         : `OPFS is not available, created transient database ${db.filename}`,
     );
+    globalThis.db = db;
     return db;
   } catch (err) {
     if (err instanceof Error) {
@@ -32,38 +40,47 @@ async function initializeSqliteAndDb() {
 }
 
 function populateDbFromGtfsData(db: Database, zipFiles: ReadZippedfile[]) {
+  // NOTE: agency_url should be NOT NULL, but mot is.. mot.
+
   for (const zipFile of zipFiles) {
     const fileName = zipFile.headers.fileName;
     const tableName = fileName.split(".")[0];
-    console.log("fileName", fileName);
+
+    console.debug(tableName, sqlCreateTableCommands[tableName]);
+    db.exec(sqlCreateTableCommands[tableName]);
+
     if (datasetFileNames[tableName]) {
+      console.log("if (datasetFileNames[tableName]) {");
       let firstLine: string;
       if (Array.isArray(zipFile.stringified))
-        firstLine = zipFile.stringified[0].slice(
-          0,
-          zipFile.stringified[0].indexOf("\n"),
-        );
+        firstLine = zipFile.stringified[0]
+          .slice(0, zipFile.stringified[0].indexOf("\n"))
+          .replaceAll("\r", "");
       else
-        firstLine = zipFile.stringified.slice(
-          0,
-          zipFile.stringified.indexOf("\n"),
-        );
+        firstLine = zipFile.stringified
+          .slice(0, zipFile.stringified.indexOf("\n"))
+          .replaceAll("\r", "");
 
-      const cleanFirstLine = firstLine.replaceAll("\r", "");
       if (!Array.isArray(zipFile.stringified)) {
+        console.log("if (!Array.isArray(zipFile.stringified)) {");
         const sqlInsertionValues = zipFile.stringified
-          .slice(zipFile.stringified.indexOf("\n")) // Remove the first line
-          .replaceAll("\r", "") // Remove Windows specific \r\n, keep only \n
-          .replace("\n", "(")
-          .replaceAll("\n", "),(")
-          .slice(0, -2); // Remove the last 2 characters left by the big .replaceAll()
+          .slice(zipFile.stringified.indexOf("\r\n")) // Remove the first line
+          .replace("\r\n", "(")
+          .replaceAll("\r\n", "),\n(")
+          .replaceAll(
+            /(?<=[(,])(\d*[^()\d,\n]+\d*[^()\d,\n]*)+(?=[,)])/g, // THIS CAPTURES 8.00
+            (match) => `'${match}'`,
+          )
+          .replaceAll(/(,(?=,))|(,(?=\)))/g, () => `,null`)
+
+          .slice(0, -4); // Remove the last 2 characters left by the big .replaceAll()
 
         const sql = `
-					INSERT INTO ${tableName} 
-					(${cleanFirstLine})
-					VALUES ${sqlInsertionValues};
-					`;
-        console.log("sql", sql);
+      INSERT INTO ${tableName}
+      (${firstLine})
+      VALUES ${sqlInsertionValues});
+      `;
+        console.debug(sql);
         db.exec(sql);
       }
     }
