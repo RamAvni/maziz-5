@@ -1,4 +1,5 @@
 import { datasetFileNames } from "./datasetFileNames.mjs";
+
 export const sqlCreateTableCommands: Record<
   keyof typeof datasetFileNames,
   string
@@ -430,5 +431,3 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(trip_id) REFERENCES trip(trip_id)
 	)`,
 };
-
-// TODO: conditional foreign key, for example, in translations
