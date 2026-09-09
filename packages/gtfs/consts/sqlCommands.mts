@@ -1,9 +1,81 @@
 import { datasetFileNames } from "./datasetFileNames.mjs";
 
-export const sqlCreateTableCommands: Record<
-  keyof typeof datasetFileNames,
-  string
+export const tableNames = {
+  agency: "agency",
+  stop: "stop",
+  route: "route",
+  trip: "trip",
+  stop_time: "stop_time",
+  calendar: "calendar",
+  calendar_date: "calendar_date",
+  fare_attribute: "fare_attribute",
+  fare_rule: "fare_rule",
+  timeframe: "timeframe",
+  rider_category: "rider_category",
+  fare_media: "fare_media",
+  fare_product: "fare_product",
+  fare_leg_rule: "fare_leg_rule",
+  fare_leg_join_rule: "fare_leg_join_rule",
+  fare_transfer_rule: "fare_transfer_rule",
+  area: "area",
+  stop_area: "stop_area",
+  network: "network",
+  route_network: "route_network",
+  shape: "shape",
+  frequency: "frequency",
+  transfer: "transfer",
+  pathway: "pathway",
+  level: "level",
+  location_group: "location_group",
+  location_group_stop: "location_group_stop",
+  location: "location",
+  booking_rule: "booking_rule",
+  translations: "translations",
+  feedInfo: "feedInfo",
+  attributions: "attributions",
+} as const;
+
+export type TableName = (typeof tableNames)[keyof typeof tableNames];
+
+export const fileNamesToTableNames: Record<
+  (typeof datasetFileNames)[keyof typeof datasetFileNames],
+  TableName
 > = {
+  "agency.txt": "agency",
+  "stops.txt": "stop",
+  "routes.txt": "route",
+  "trips.txt": "trip",
+  "stop_times.txt": "stop_time",
+  "calendar.txt": "calendar",
+  "calendar_dates.txt": "calendar_date",
+  "fare_attributes.txt": "fare_attribute",
+  "fare_rules.txt": "fare_rule",
+  "timeframes.txt": "timeframe",
+  "rider_categories.txt": "rider_category",
+  "fare_media.txt": "fare_media",
+  "fare_products.txt": "fare_product",
+  "fare_leg_rules.txt": "fare_leg_rule",
+  "fare_leg_join_rules.txt": "fare_leg_join_rule",
+  "fare_transfer_rules.txt": "fare_transfer_rule",
+  "areas.txt": "area",
+  "stop_areas.txt": "stop_area",
+  "networks.txt": "network",
+  "route_networks.txt": "route_network",
+  "shapes.txt": "shape",
+  "frequencies.txt": "frequency",
+  "transfers.txt": "transfer",
+  "pathways.txt": "pathway",
+  "levels.txt": "level",
+  "location_groups.txt": "location_group",
+  "location_group_stops.txt": "location_group_stop",
+  "locations.geojson": "location",
+  "booking_rules.txt": "booking_rule",
+  "translations.txt": "translations",
+  "feed_info.txt": "feedInfo",
+  "attributions.txt": "attributions",
+};
+
+export const sqlCreateTableCommands: Record<TableName, string> = {
   // export const sqlCreateTableCommands = {
   // agency_url should be NOT NULL, but mot is mot and.. welp.
   agency: `CREATE TABLE agency
@@ -19,7 +91,7 @@ export const sqlCreateTableCommands: Record<
 		agency_email TEXT NULL,
 		cemv_support INTEGER CHECK( cemv_support IN (0, 1, 2)) NULL
 	)`,
-  stops: `CREATE TABLE stop 
+  stop: `CREATE TABLE stop 
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		stop_id TEXT NOT NULL,
@@ -39,11 +111,10 @@ export const sqlCreateTableCommands: Record<
 		platform_code TEXT NULL,
 		stop_access INTEGER CHECK( stop_access IN (0, 1)) NULL,
 
-
 		FOREIGN KEY(parent_station) REFERENCES stop(stop_id),
 		FOREIGN KEY(level_id) REFERENCES level(level_id)
 	)`,
-  routes: `CREATE TABLE route 
+  route: `CREATE TABLE route 
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		route_id TEXT NOT NULL,
@@ -64,7 +135,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(agency_id) REFERENCES agency(agency_id)
 	)`,
   // TODO: Look into service_id - "Foreign ID referencing calendar.service_id **or** calendar_dates.service_id"
-  trips: `CREATE TABLE trip
+  trip: `CREATE TABLE trip
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		route_id TEXT NOT NULL,
@@ -85,7 +156,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(service_id) REFERENCES calendar(service_id),
 		FOREIGN KEY(shape_id) REFERENCES shape(shape_id)
 	)`,
-  stop_times: `CREATE TABLE stop_time
+  stop_time: `CREATE TABLE stop_time
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		trip_id TEXT NOT NULL,
@@ -109,7 +180,7 @@ export const sqlCreateTableCommands: Record<
 
 
 		FOREIGN KEY(trip_id) REFERENCES trip(trip_id),
-		FOREIGN KEY(parent_station) REFERENCES stop(stop_id),
+		FOREIGN KEY(stop_id) REFERENCES stop(stop_id),
 		FOREIGN KEY(location_group_id) REFERENCES location_groups(location_group_id),
 		FOREIGN KEY(location_id) REFERENCES location(geojson),
 		FOREIGN KEY(pickup_booking_rule_id) REFERENCES booking_rule(booking_rule_id),
@@ -129,7 +200,7 @@ export const sqlCreateTableCommands: Record<
 		start_date TEXT NOT NULL,
 		end_date TEXT NOT NULL
 	)`,
-  calendar_dates: `CREATE TABLE calendar_date
+  calendar_date: `CREATE TABLE calendar_date
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		service_id TEXT NOT NULL,
@@ -138,7 +209,7 @@ export const sqlCreateTableCommands: Record<
 
 		FOREIGN KEY(service_id) REFERENCES calendar(service_id)
 	)`,
-  fare_attributes: `CREATE TABLE fare_attribute
+  fare_attribute: `CREATE TABLE fare_attribute
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		fare_id TEXT NOT NULL,
@@ -151,12 +222,12 @@ export const sqlCreateTableCommands: Record<
 
 		FOREIGN KEY(agency_id) REFERENCES agency(agency_id)
 	)`,
-  fare_rules: `CREATE TABLE fare_rule
+  fare_rule: `CREATE TABLE fare_rule
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		fare_id TEXT NOT NULL,
 		route_id TEXT NULL,
-		rogin_id TEXT NULL,
+		origin_id TEXT NULL,
 		destination_id TEXT NULL,
 		contains_id TEXT NULL,
 
@@ -168,7 +239,7 @@ export const sqlCreateTableCommands: Record<
 	)`,
 
   // TODO: Look into service_id - "Foreign ID referencing calendar.service_id **or** calendar_dates.service_id"
-  timeframes: `CREATE TABLE timeframe
+  timeframe: `CREATE TABLE timeframe
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		timeframe_group_id TEXT NOT NULL,
@@ -177,7 +248,7 @@ export const sqlCreateTableCommands: Record<
 
 		FOREIGN KEY(service_id) REFERENCES calendar(service_id)
 	)`,
-  rider_categories: `CREATE TABLE rider_category
+  rider_category: `CREATE TABLE rider_category
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		rider_category_id TEXT NOT NULL,
@@ -192,7 +263,7 @@ export const sqlCreateTableCommands: Record<
 		fare_media_name TEXT NULL,
 		fare_media_type INTEGER CHECK(fare_media_type IN (0, 1, 2, 3, 4)) NOT NULL
 	)`,
-  fare_products: `CREATE TABLE fare_product
+  fare_product: `CREATE TABLE fare_product
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		fare_product_id TEXT NOT NULL,
@@ -207,7 +278,7 @@ export const sqlCreateTableCommands: Record<
 	)`,
 
   // TODO: Look into network_id - "Foreign ID referencing routes.network_id or networks.network_id"
-  fare_leg_rules: `CREATE TABLE fare_leg_rule
+  fare_leg_rule: `CREATE TABLE fare_leg_rule
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		leg_group_id TEXT NULL,
@@ -227,7 +298,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(fare_product_id) REFERENCES fare_product(fare_product_id)
 	)`,
   // TODO: Look into from_network_id or to_network_id - "Foreign ID referencing routes.network_id or networks.network_id"
-  fare_leg_join_rules: `CREATE TABLE fare_leg_join_rule
+  fare_leg_join_rule: `CREATE TABLE fare_leg_join_rule
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		from_network_id TEXT NOT NULL,
@@ -240,7 +311,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(from_stop_id) REFERENCES stop(stop_id),
 		FOREIGN KEY(to_stop_id) REFERENCES stop(stop_id)
 	)`,
-  fare_transfer_rules: `CREATE TABLE fare_transfer_rule
+  fare_transfer_rule: `CREATE TABLE fare_transfer_rule
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		from_leg_group_id TEXT NULL,
@@ -256,13 +327,13 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(to_leg_group_id) REFERENCES fare_leg_rule(leg_group_id),
 		FOREIGN KEY(fare_product_id) REFERENCES fare_product(fare_product_id)
 	)`,
-  areas: `CREATE TABLE area
+  area: `CREATE TABLE area
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		area_id TEXT NOT NULL,
 		area_name TEXT NULL
 	)`,
-  stop_areas: `CREATE TABLE stop_area
+  stop_area: `CREATE TABLE stop_area
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		area_id TEXT NOT NULL,
@@ -271,7 +342,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(area_id) REFERENCES area(area_id),
 		FOREIGN KEY(stop_id) REFERENCES stop(stop_id)
 	)`,
-  networks: `CREATE TABLE network 
+  network: `CREATE TABLE network 
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		network_id TEXT NOT NULL,
@@ -280,7 +351,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(network_id) REFERENCES network(network_id),
 		FOREIGN KEY(route_id) REFERENCES route(route_id)
 	)`,
-  route_networks: `CREATE TABLE route_network 
+  route_network: `CREATE TABLE route_network 
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		network_id TEXT NOT NULL,
@@ -289,7 +360,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(network_id) REFERENCES network(network_id),
 		FOREIGN KEY(route_id) REFERENCES route(route_id)
 	)`,
-  shapes: `CREATE TABLE shape
+  shape: `CREATE TABLE shape
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		shape_id TEXT NOT NULL,
@@ -298,7 +369,7 @@ export const sqlCreateTableCommands: Record<
 		shape_pt_sequence INTEGER NOT NULL,
 		shape_dist_traveled REAL NULL
 	)`,
-  frequencies: `CREATE TABLE frequency
+  frequency: `CREATE TABLE frequency
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		trip_id TEXT NOT NULL,
@@ -308,7 +379,7 @@ export const sqlCreateTableCommands: Record<
 		exact_times INTEGER CHECK( exact_times IN (0, 1)) NULL
 
 	)`,
-  transfers: `CREATE TABLE transfer
+  transfer: `CREATE TABLE transfer
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		from_stop_id TEXT NULL,
@@ -326,7 +397,7 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(to_route_id) REFERENCES route(route_id),
 		FOREIGN KEY(to_trip_id) REFERENCES trip(trip_id)
 	)`,
-  pathways: `CREATE TABLE pathway
+  pathway: `CREATE TABLE pathway
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		primary_id TEXT NOT NULL,
@@ -345,20 +416,20 @@ export const sqlCreateTableCommands: Record<
 		FOREIGN KEY(from_stop_id) REFERENCES stop(stop_id),
 		FOREIGN KEY(to_stop_id) REFERENCES stop(stop_id)
 	)`,
-  levels: `CREATE TABLE level
+  level: `CREATE TABLE level
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		level_id TEXT NOT NULL,
 		level_index REAL NOT NULL,
 		level_name TEXT NULL
 	)`,
-  location_groups: `CREATE TABLE level
+  location_group: `CREATE TABLE level
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		location_groups_id TEXT NOT NULL,
 		location_group_name TEXT NULL
 	)`,
-  location_group_stops: `CREATE TABLE location_group_stop
+  location_group_stop: `CREATE TABLE location_group_stop
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		location_groups_id TEXT NOT NULL,
@@ -366,8 +437,8 @@ export const sqlCreateTableCommands: Record<
 
 		FOREIGN KEY(stop_id) REFERENCES stop(stop_id)
 	)`,
-  locations: "locations: TODO: this should trigger an error on purpose",
-  booking_rules: `CREATE TABLE booking_rule
+  location: "locations: TODO: this should trigger an error on purpose",
+  booking_rule: `CREATE TABLE booking_rule
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		booking_rule_id TEXT NOT NULL,

@@ -5,17 +5,16 @@
 import sqlite3InitModule, {
   type Database,
 } from "../../../node_modules/@sqlite.org/sqlite-wasm/dist/index.mjs";
-import {
-  getMotGtfsZipFile,
-  normalizeCsvTextFile,
-  readZip64File,
-  ReadZippedfile,
-} from "./zip.js";
+import { getMotGtfsZipFile, readZip64File, ReadZippedfile } from "./zip.js";
 
 // @ts-ignore -- idk why it errors
 import { datasetFileNames } from "../../../packages/gtfs/build/consts/datasetFileNames.mjs";
 // @ts-ignore -- idk why it errors
-import { sqlCreateTableCommands } from "../../../packages/gtfs/build/consts/sqlCommands.mjs";
+import {
+  fileNamesToTableNames,
+  sqlCreateTableCommands,
+  TableName,
+} from "../../../packages/gtfs/build/consts/sqlCommands.mjs";
 
 async function initializeSqliteAndDb() {
   try {
@@ -44,13 +43,13 @@ function populateDbFromGtfsData(db: Database, zipFiles: ReadZippedfile[]) {
 
   for (const zipFile of zipFiles) {
     const fileName = zipFile.headers.fileName;
-    const tableName = fileName.split(".")[0];
+    const tableName = fileNamesToTableNames[fileName] as TableName | undefined;
+    if (!tableName) throw new Error("couldn't find tableName!");
 
-    console.debug(tableName, sqlCreateTableCommands[tableName]);
+    console.debug(sqlCreateTableCommands[tableName]);
     db.exec(sqlCreateTableCommands[tableName]);
 
     if (datasetFileNames[tableName]) {
-      console.log("if (datasetFileNames[tableName]) {");
       let firstLine: string;
       if (Array.isArray(zipFile.stringified))
         firstLine = zipFile.stringified[0]
@@ -62,7 +61,6 @@ function populateDbFromGtfsData(db: Database, zipFiles: ReadZippedfile[]) {
           .replaceAll("\r", "");
 
       if (!Array.isArray(zipFile.stringified)) {
-        console.log("if (!Array.isArray(zipFile.stringified)) {");
         const sqlInsertionValues = zipFile.stringified
           .slice(zipFile.stringified.indexOf("\r\n")) // Remove the first line
           .replace("\r\n", "(")

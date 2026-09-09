@@ -5,50 +5,50 @@
  * TODO: implement the conditional
  */
 export const datasetFileNames = {
-  agency: "agency.txt",
+  agency: "agency.txt" as const,
   /** NOTE: Optional if demand-responsive zones are defined in locations.geojson. */
-  stops: "stops.txt",
-  routes: "routes.txt",
-  trips: "trips.txt",
-  stop_times: "stop_times.txt",
+  stops: "stops.txt" as const,
+  routes: "routes.txt" as const,
+  trips: "trips.txt" as const,
+  stop_times: "stop_times.txt" as const,
 
   /** NOTE: Required unless all dates of service are defined in calendar_dates.txt. */
-  calendar: "calendar.txt",
+  calendar: "calendar.txt" as const,
   /** NOTE: Required if calendar.txt is omitted. In which case calendar_dates.txt must contain all dates of service. */
-  calendar_dates: "calendar_dates.txt",
+  calendar_dates: "calendar_dates.txt" as const,
 
-  fare_attributes: "fare_attributes.txt",
-  fare_rules: "fare_rules.txt",
-  timeframes: "timeframes.txt",
-  rider_categories: "rider_categories.txt",
-  fare_media: "fare_media.txt",
-  fare_products: "fare_products.txt",
-  fare_leg_rules: "fare_leg_rules.txt",
-  fare_leg_join_rules: "fare_leg_join_rules.txt",
-  fare_transfer_rules: "fare_transfer_rules.txt",
+  fare_attributes: "fare_attributes.txt" as const,
+  fare_rules: "fare_rules.txt" as const,
+  timeframes: "timeframes.txt" as const,
+  rider_categories: "rider_categories.txt" as const,
+  fare_media: "fare_media.txt" as const,
+  fare_products: "fare_products.txt" as const,
+  fare_leg_rules: "fare_leg_rules.txt" as const,
+  fare_leg_join_rules: "fare_leg_join_rules.txt" as const,
+  fare_transfer_rules: "fare_transfer_rules.txt" as const,
 
-  areas: "areas.txt",
-  stop_areas: "stop_areas.txt",
+  areas: "areas.txt" as const,
+  stop_areas: "stop_areas.txt" as const,
 
   /** Forbidden if network_id exists in routes.txt. */
-  networks: "networks.txt",
+  networks: "networks.txt" as const,
   /** Forbidden if network_id exists in routes.txt. */
-  route_networks: "route_networks.txt",
+  route_networks: "route_networks.txt" as const,
 
-  shapes: "shapes.txt",
-  frequencies: "frequencies.txt",
-  transfers: "transfers.txt",
-  pathways: "pathways.txt",
+  shapes: "shapes.txt" as const,
+  frequencies: "frequencies.txt" as const,
+  transfers: "transfers.txt" as const,
+  pathways: "pathways.txt" as const,
   /** NOTE: Required when describing pathways with elevators (pathway_mode=5). */
-  levels: "levels.txt",
+  levels: "levels.txt" as const,
 
-  location_groups: "location_groups.txt",
-  location_group_stops: "location_group_stops.txt",
-  locations: "locations.geojson",
-  booking_rules: "booking_rules.txt",
-  translations: "translations.txt",
+  location_groups: "location_groups.txt" as const,
+  location_group_stops: "location_group_stops.txt" as const,
+  locations: "locations.geojson" as const,
+  booking_rules: "booking_rules.txt" as const,
+  translations: "translations.txt" as const,
   /** NOTE: Required if translations.txt is provided. */
-  feedInfo: "feed_info.txt",
+  feedInfo: "feed_info.txt" as const,
 
-  attributions: "attributions.txt",
+  attributions: "attributions.txt" as const,
 };
