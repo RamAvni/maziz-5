@@ -76,8 +76,7 @@ export const fileNamesToTableNames: Record<
 };
 
 export const sqlCreateTableCommands: Record<TableName, string> = {
-  // export const sqlCreateTableCommands = {
-  // agency_url should be NOT NULL, but mot is mot and.. welp.
+  // NOTE: agency_url should be NOT NULL, but mot is mot and.. welp.
   agency: `CREATE TABLE agency
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,6 +113,8 @@ export const sqlCreateTableCommands: Record<TableName, string> = {
 		FOREIGN KEY(parent_station) REFERENCES stop(stop_id),
 		FOREIGN KEY(level_id) REFERENCES level(level_id)
 	)`,
+  // TODO: 8 or 715 shouldn't be here. fucking mot
+  // TODO: seems like route_id get's cut in the beginning
   route: `CREATE TABLE route 
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +123,7 @@ export const sqlCreateTableCommands: Record<TableName, string> = {
 		route_short_name TEXT NULL,
 		route_long_name TEXT NULL,
 		route_desc TEXT NULL,
-		route_type INTEGER CHECK( route_type IN (0, 1, 2, 3, 4, 5, 6, 7, 11, 12)) NOT NULL,
+		route_type INTEGER CHECK( route_type IN (0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 8, 715)) NOT NULL,
 		route_url TEXT NULL,
 		route_color TEXT NULL,
 		route_text_color TEXT NULL,
@@ -462,13 +463,17 @@ export const sqlCreateTableCommands: Record<TableName, string> = {
 		FOREIGN KEY(prior_notice_service_id) REFERENCES calendar(service_id)
 	)`,
   // NOTE: Any file added to GTFS will have a table_name value equivalent to the file name, as listed above (i.e., not including the .txt file extension).
-  //  translations: `CREATE TABLE translation
-  // (
-  // 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-  // 	table_name TEXT CHECK(table_name IN ('agency', 'stops' 'routes', 'trips' 'stop_times', 'pathways', 'levels', 'feed_info', 'attributions')) NOT NULL
-  // 	FOREIGN KEY(prior_notice_service_id) REFERENCES calendar(service_id)
-  // )`,
-  translations: "translations - this should trigger an error on purpose",
+  translations: `CREATE TABLE translations
+	(
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		table_name TEXT CHECK( table_name IN ('agency', 'stops', 'routes', 'trips', 'stop_times', 'pathways', 'levels', 'feed_info', 'attributions')) NOT NULL,
+		field_name TEXT NOT NULL,
+		language TEXT NOT NULL,
+		translation TEXT NOT NULL,
+		record_id TEXT NULL,
+		record_sub_id TEXT NULL,
+		field_value TEXT NULL
+	)`,
   feedInfo: `CREATE TABLE feed_info
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
