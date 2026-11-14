@@ -462,13 +462,12 @@ export const sqlCreateTableCommands: Record<TableName, string> = {
 		FOREIGN KEY(prior_notice_service_id) REFERENCES calendar(service_id)
 	)`,
   // NOTE: Any file added to GTFS will have a table_name value equivalent to the file name, as listed above (i.e., not including the .txt file extension).
-  //  translations: `CREATE TABLE translation
-  // (
-  // 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-  // 	table_name TEXT CHECK(table_name IN ('agency', 'stops' 'routes', 'trips' 'stop_times', 'pathways', 'levels', 'feed_info', 'attributions')) NOT NULL
-  // 	FOREIGN KEY(prior_notice_service_id) REFERENCES calendar(service_id)
-  // )`,
-  translations: "translations - this should trigger an error on purpose",
+  translations: `CREATE TABLE translation
+  (
+  	id INTEGER PRIMARY KEY AUTOINCREMENT
+  )`,
+  // table_name TEXT CHECK(table_name IN ('agency', 'stop', 'route', 'trip', 'stop_time', 'pathway', 'level', 'feed_info', 'attribution')) NOT NULL,
+  // translations: "translations - this should trigger an error on purpose",
   feedInfo: `CREATE TABLE feed_info
 	(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

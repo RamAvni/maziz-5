@@ -120,4 +120,7 @@ async function main() {
   // postMessage(hi);
 }
 
-await main();
+// document.getElementById("offline-btn")?.addEventListener("click", main);
+addEventListener("message", (event) => {
+  if (event.data === "offline-fetch") main();
+});
