@@ -21,24 +21,22 @@ async function initializeSqliteAndDb() {
   try {
     const sqlite3 = await sqlite3InitModule();
     console.info("Running SQLite3 version", sqlite3.version.libVersion);
-    const db =
-      "opfs" in sqlite3
-        ? new sqlite3.oo1.OpfsDb("/mydb.sqlite3")
-        : new sqlite3.oo1.DB("/mydb.sqlite3", "c");
-    console.info(
-      "opfs" in sqlite3
-        ? `OPFS is available, created persisted database at ${db.filename}`
-        : `OPFS is not available, created transient database ${db.filename}`,
-    );
+    // const db = new sqlite3.oo1.OpfsDb("/mydb.sqlite3");
+    const pool = await sqlite3.installOpfsSAHPoolVfs({});
+    const db = new pool.OpfsSAHPoolDb("/mydb.sqlite3");
     globalThis.sqlite3 = sqlite3;
     globalThis.db = db;
 
     // TODO: add a check in case of corrupted database, i.e. phone shuts down mid proccess
     db.exec(`
-  PRAGMA synchronous = OFF;
-  PRAGMA journal_mode = MEMORY;
-  PRAGMA temp_store = MEMORY;
+PRAGMA page_size = 8192;
+PRAGMA cache_size = -65536;      
+PRAGMA locking_mode = EXCLUSIVE; 
+PRAGMA journal_mode = OFF;       
+PRAGMA synchronous = OFF;
+PRAGMA temp_store = MEMORY;
 `);
+
     return db;
   } catch (err) {
     if (err instanceof Error) {
@@ -50,17 +48,20 @@ async function initializeSqliteAndDb() {
 function getBigSqlInsertionString(
   tableName: string,
   firstLine: string,
-  valuesOnce: string,
   amount: number,
 ) {
+  const valuesOnce = firstLine
+    .split(",")
+    .map(() => "?,")
+    .join("");
   const placeholders = valuesOnce.repeat(amount).slice(0, -1); // Remove the last comma
-  return `INSERT INTO ${tableName} (${firstLine}) VALUES ${placeholders}`;
+  return `INSERT INTO ${tableName} (${firstLine}) VALUES (${placeholders})`;
 }
 
 async function populateDbFromGtfsData(
   db: Database,
   zipFiles: ReadZippedfile[],
-  batchSize?,
+  batchSize?: number,
 ) {
   if (!batchSize)
     batchSize =
@@ -78,22 +79,43 @@ async function populateDbFromGtfsData(
     console.debug(sqlCreateTableCommands[tableName]);
     db.exec(sqlCreateTableCommands[tableName]);
 
-    // let pocket;
-    // let offset = 0;
+    let statment: ReturnType<typeof db.prepare> | null;
+    let firstLine: string | null = null;
+    let rowValues: (string | number | null)[] = []; // Putting this here is practically gambling. since when a second chunk comes from await chunk of zipFole.fileBytes, we can't know if it stopped exactly at the right spot, and whether we won't read garbage values.
+    db.exec("BEGIN TRANSACTION");
     for await (const chunk of zipFile.fileBytes) {
-      let fileStart = 0;
-      if (chunk[0] === 239 && chunk[1] === 187 && chunk[2] === 191)
-        fileStart = 3; // skip UTF-8 BOM magic number
+      let start = 0;
+      if (chunk[0] === 239 && chunk[1] === 187 && chunk[2] === 191) start = 3; // skip UTF-8 BOM magic number
 
       const decoder = new TextDecoder();
-      const values: (string | number | null)[][] = [];
-      let tempValues: (string | number | null)[] = [];
-      let currentValueStart: number = fileStart;
-      for (let i = fileStart; i < chunk.length; i++) {
+      let currentValueStart: number = start;
+      for (let i = start; i < chunk.length; i++) {
         // 10 is utf-8 for the "\n" character
         if (chunk[i] === 10) {
-          values.push(tempValues);
-          tempValues = [];
+          {
+            // Add the last element, that doesn't have a "," at the end of the line. this is a copy of the code below.
+            const currentValue = decoder.decode(
+              chunk.subarray(currentValueStart, i),
+            );
+            const numberedCurrentValue = Number(currentValue);
+            if (numberedCurrentValue || numberedCurrentValue === 0)
+              rowValues.push(numberedCurrentValue);
+            else if (currentValue === "") rowValues.push(null);
+            else rowValues.push(currentValue);
+          }
+          if (!firstLine) {
+            firstLine = rowValues.join(",");
+
+            statment = db.prepare(
+              getBigSqlInsertionString(tableName, firstLine, 1),
+            );
+          } else {
+            statment!.bind(rowValues);
+            statment!.step();
+            statment!.reset();
+          }
+
+          rowValues = [];
           currentValueStart = i + 1;
         }
         // 44 is utf-8 for the "," character
@@ -103,19 +125,19 @@ async function populateDbFromGtfsData(
           );
           const numberedCurrentValue = Number(currentValue);
           if (numberedCurrentValue || numberedCurrentValue === 0)
-            tempValues.push(numberedCurrentValue);
-          else if (currentValue === "") tempValues.push(null);
-          else tempValues.push(currentValue);
+            rowValues.push(numberedCurrentValue);
+          else if (currentValue === "") rowValues.push(null);
+          else rowValues.push(currentValue);
 
           currentValueStart = i + 1;
         }
       }
     }
-
-    // db.exec("BEGIN");
-    //
-    // db.exec("COMMIT");
+    console.time("statment.finalize");
+    statment!.finalize();
+    console.timeEnd("statment.finalize");
     console.timeEnd(tableName);
+    db.exec("COMMIT");
   }
 }
 

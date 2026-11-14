@@ -65,10 +65,10 @@ export function provideStaticResource(
 
     res.writeHead(200, {
       "Content-Type": getContentType(fileSuffix),
-      ...(reqUrl?.includes("wasm")
+      ...(filePath?.includes("index.html") || filePath?.includes("sqlite")
         ? { "Cross-Origin-Opener-Policy": "same-origin" }
         : {}),
-      ...(reqUrl?.includes("wasm")
+      ...(filePath?.includes("index.html") || filePath?.includes("sqlite")
         ? { "Cross-Origin-Embedder-Policy": "require-corp" }
         : {}),
       "x-content-type-options": "no-sniff",
