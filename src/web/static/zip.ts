@@ -131,7 +131,7 @@ export function getZip64ZippedFileHeaders(
   return headers;
 }
 
-function decompressZip64ZippedFile(
+async function decompressZip64ZippedFile(
   zipFile: Uint8Array,
   view: DataView,
   headers: ZippedFileHeaders,
@@ -145,23 +145,29 @@ function decompressZip64ZippedFile(
       controller.close();
     },
   });
-  return stream.pipeThrough(decompressionStream);
+  const readable = stream.pipeThrough(decompressionStream);
 
-  // const file = new Uint8Array(Number(headers.extra.uncompressedFileSize));
-  // let offset = 0;
-  // for await (const chunk of readable) {
-  //   file.set(chunk, offset);
-  //   offset += chunk.length;
-  // }
-  //
-  // return file;
+  const file = new Uint8Array(Number(headers.extra.uncompressedFileSize));
+  let offset = 0;
+  for await (const chunk of readable) {
+    file.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return file;
 }
 
 export interface ReadZippedfile {
   headers: ZippedFileHeaders;
-  fileBytes: ReturnType<typeof decompressZip64ZippedFile>;
+  stringified: string | string[];
 }
-export function readZip64File(zipFile: Uint8Array) {
+export async function readZip64File(
+  zipFile: Uint8Array,
+  callback?: (
+    headers: ZippedFileHeaders,
+    stringifiedZipFile: string | string[],
+  ) => void,
+) {
   console.log("Reading Zip File....");
   const view = new DataView(
     zipFile.buffer,
@@ -180,15 +186,36 @@ export function readZip64File(zipFile: Uint8Array) {
         offset + 30 + headers.fileNameLength + headers.extraLength;
       const fileEndsAt =
         fileStartsAt + Number(headers.extra.compressedDataSize);
-      const decompressedBytes = decompressZip64ZippedFile(
+      const decompressedBytes = await decompressZip64ZippedFile(
         zipFile,
         view,
         headers,
         fileStartsAt,
         fileEndsAt,
       );
+      const decoder = new TextDecoder();
+      let stringified: string | string[];
+      if (decompressedBytes.length > 2 ** 27) {
+        stringified = [];
+        for (
+          let chunkOffset = 0;
+          chunkOffset < decompressedBytes.length;
+          chunkOffset += 2 ** 27
+        ) {
+          const max =
+            decompressedBytes.length > chunkOffset + 2 ** 27
+              ? chunkOffset + 2 ** 27
+              : undefined;
+          stringified.push(
+            decoder.decode(decompressedBytes.subarray(chunkOffset, max)),
+          );
+        }
+      } else {
+        stringified = decoder.decode(decompressedBytes);
+      }
 
-      files.push({ headers, fileBytes: decompressedBytes });
+      if (callback) callback(headers, stringified);
+      files.push({ headers, stringified });
       offset = fileEndsAt;
     }
     // central directory
@@ -203,6 +230,7 @@ export function readZip64File(zipFile: Uint8Array) {
       break;
     }
   }
+  console.log("Done Reading Zip File....");
   return files;
 }
 
