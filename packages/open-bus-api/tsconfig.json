@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfigBase.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./build"
+  },
+  "include": ["./index.mts", "consts", "types", "functions"],
+  "exclude": ["node_modules", "build"]
+}

@@ -71,6 +71,9 @@ importers:
       gtfs:
         specifier: workspace:*
         version: link:packages/gtfs
+      open-bus-api:
+        specifier: workspace:*
+        version: link:packages/open-bus-api
       zod:
         specifier: 'catalog:'
         version: 4.5.4
@@ -119,6 +122,12 @@ importers:
         version: 8.69.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
 
   packages/gtfs:
+    dependencies:
+      zod:
+        specifier: 'catalog:'
+        version: 4.5.4
+
+  packages/open-bus-api:
     dependencies:
       zod:
         specifier: 'catalog:'

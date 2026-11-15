@@ -1,0 +1,18 @@
+{
+  "name": "open-bus-api",
+  "exports": {
+    ".": {
+      "types": "./index.d.mts",
+      "import": "./build/index.mjs",
+      "require": "./build/index.mjs",
+      "node": "./build/index.mjs,",
+      "browser": "./build/index.mjs,",
+      "main": "./build/index.mjs,"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {}
+}

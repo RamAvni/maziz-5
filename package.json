@@ -13,6 +13,7 @@
     "@sqlite.org/sqlite-wasm": "catalog:",
     "dotenv": "catalog:",
     "gtfs": "workspace:*",
+    "open-bus-api": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
