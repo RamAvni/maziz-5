@@ -1,4 +1,5 @@
-export * from "./datasetFiles";
+export type * from "./datasetFiles.d.mts";
+export type * from "./functions.d.mts";
 
 /**
  * FIELD TYPES
