@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Maziz</title>
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="../../../node_modules/leaflet/src/leaflet.css" />;
   </head>
   <body>
     <h1>Hello!</h1>
     <button id="offline-btn">Click me to buggly save GTFS offline!</button>
+    <div id="map"></div>
 
     <!-- This part translates modules specifiers, into their paths. NOTE: Does NOT work for WebWorkers! -->
     <script type="importmap">

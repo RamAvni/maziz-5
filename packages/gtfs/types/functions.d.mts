@@ -25,4 +25,11 @@ export interface GtfsPackage {
     lat: number,
     radius: number,
   ) => Promise<Stop[]>;
+
+    getStationsByCordBounds: (
+        northEastLat: number,
+        northEastLon: number,
+        southWestLat: number,
+        southWestLon: number,
+    ) =>  Promise<Stop[]>
 }

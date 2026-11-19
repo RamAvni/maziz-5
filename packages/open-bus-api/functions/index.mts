@@ -189,6 +189,30 @@ async function getStationsByRadius(
   }));
 }
 
+async function getStationsByCordBounds(
+  northEastLat: number,
+  northEastLon: number,
+  southWestLat: number,
+  southWestLon: number,
+) {
+  const openBusStopListByRadius = await getSIRIRideStopsList({
+    gtfs_stop__lat__greater_or_equal: southWestLat,
+    gtfs_stop__lat__lower_or_equal: northEastLat,
+    gtfs_stop__lon__greater_or_equal: southWestLon,
+    gtfs_stop__lon__lower_or_equal: northEastLon,
+  });
+  console.log(openBusStopListByRadius);
+  return openBusStopListByRadius.map((openBusStop) => ({
+    stopId: String(openBusStop.gtfs_ride_stop__gtfs_stop_id),
+    stopLat: openBusStop.gtfs_stop__lat,
+    stopLon: openBusStop.gtfs_stop__lon,
+    stopCode: String(openBusStop.gtfs_stop__code),
+    stopName: openBusStop.gtfs_stop__name,
+  }));
+}
+
+
 export const gtfsFunctionImplementation: GtfsPackage = {
   getStationsByRadius,
+  getStationsByCordBounds
 };
