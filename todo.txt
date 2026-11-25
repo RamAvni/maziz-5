@@ -1,0 +1,36 @@
+v/ Stage Zero: Plan a plan
+
+! Stage One: Building the base
+v/ General setup:
+	v/ Tidiness and Seperation:
+		v/ GTFS Package
+		v/ OPEN-BUS package
+		v/ web server
+	v/ web server watch-mode
+	v/ ZIP decompressor
+	v/ SQLite WASM setup
+	:- Loading MOT's GTFS data into an SQLite DB
+
+! Stage Two: Sketching out a map
+v/ map
+v/ Show GTFS bus stops according to a certain location
+
+-> Points of Intereset
+	-> Obtain Points of Interest data
+	:O Points of Interest on the map
+	:O Add Points of Interest to the search option
+
+:O Learn how to find 1km radius from a location given with lat and lon
+:O Apply what learned and show stations in a certain km radius from ANY location
+
+
+! Stage Three: Navigation
+:O Add "Route Plan steps", i.e. 1. walk to bus station. 2. wait for. 3. ride with. 4. walk to
+:O Perform a ride between two bus stops
+:O Perform a ride between a location and another location
+:O Perform a ride that includes switch buses!
+:O Perform a ride that includes a train
+:O Perform a ride that includes ANY avaliable public transport in Israel (Rachbal, Train, Bus, Light Rail, etc. https://govil.ai/datasets/%D7%AA%D7%97%D7%A0%D7%95%D7%AA-%D7%AA%D7%97%D7%91%D7%95%D7%A8%D7%94-%D7%A6%D7%99%D7%91%D7%95%D7%A8%D7%99%D7%AA-27047419/ 
+
+! Stage Four: make stuff prettyyyyyyyyyyyyyy
+

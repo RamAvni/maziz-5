@@ -54,7 +54,7 @@ async function showStopsOnMap(map: LeafletMap, stops: Stop[]) {
   return stops;
 }
 
-function sbtnetupLocationSearch(
+function setupLocationSearch(
   elementId: string,
   stops: Stop[],
   map: LeafletMap,
