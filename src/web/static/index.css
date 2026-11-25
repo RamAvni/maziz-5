@@ -1,4 +1,3 @@
-
 * {
   margin: 0;
   padding: 0;
@@ -6,13 +5,16 @@
 }
 body {
   background-color: rgb(20, 20, 20);
-}
-h1,
-p {
   color: ghostwhite;
-}
 
-
-#map {
+  & #map {
     height: 500px;
+  }
+
+  & #location-search {
+    border: solid 2px purple;
+    & ul {
+      border: solid 2px red;
+    }
+  }
 }

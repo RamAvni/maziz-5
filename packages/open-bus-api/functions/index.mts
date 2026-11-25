@@ -1,5 +1,5 @@
-import { OPEN_BUS_API_URL } from "../consts/index.mjs";
-import type { FieldTypes, GtfsPackage } from "gtfs";
+import { OPEN_BUS_API_URL, OPEN_BUS_DB_URL } from "../consts/index.mjs";
+import type { FieldTypes, GtfsPackage, Stop } from "gtfs";
 
 // Helpers
 
@@ -18,14 +18,25 @@ interface getGTFSStopsListOpts {
   limit?: number;
   offset?: number;
   get_count?: boolean;
-  date_from?: Date;
-  date_to?: Date;
+  date_from?: string;
+  date_to?: string;
   code?: number;
   city?: string;
 }
-async function getGTFSStopsList(opts: getGTFSStopsListOpts) {
+async function getGTFSStopsList(opts: getGTFSStopsListOpts): Promise<Stop[]> {
   const urlParams = urlParamObjectToString(opts);
-  return fetch(OPEN_BUS_API_URL + "/gtfs_stops/list" + urlParams);
+  const resBody = (await (
+    await fetch(OPEN_BUS_API_URL + "/gtfs_stops/list" + urlParams)
+  ).json()) as Record<string, any>[];
+  return resBody.map((stop) => ({
+    stopId: stop.id,
+    stopLat: stop.lat,
+    stopLon: stop.lon,
+    stopCode: stop.code,
+    stopName: stop.name,
+    // stop.city !
+    // stop.date !
+  }));
 }
 
 type getGTFSRideStopsListOpts = (
@@ -86,8 +97,12 @@ interface getSIRIRideStopsListOpts {
   gtfs_stop__lat__lower_or_equal?: number;
   gtfs_stop__lon__greater_or_equal?: number;
   gtfs_stop__lon__lower_or_equal?: number;
-  gtfs_date_from?: Date;
-  gtfs_date_to?: Date;
+  // gtfs_date_from?: Date;
+  // gtfs_date_to?: Date;
+  /** Of the ISO format: YYYY-MM-DD */
+  gtfs_date_from?: string;
+  /** Of the ISO format: YYYY-MM-DD */
+  gtfs_date_to?: string;
   order_by?: string;
 }
 
@@ -160,10 +175,40 @@ async function getSIRIRideStopsList(
 
 // Exported Stantardized GtfsPackage type:
 
+async function getStops() {
+  // TODO: remove temporary date magic number
+  return [
+    ...(await getGTFSStopsList({
+      date_from: "2026-11-23",
+      date_to: "2026-11-23",
+      limit: 10000,
+      offset: 0,
+    })),
+    ...(await getGTFSStopsList({
+      date_from: "2026-11-23",
+      date_to: "2026-11-23",
+      limit: 10000,
+      offset: 10000,
+    })),
+    ...(await getGTFSStopsList({
+      date_from: "2026-11-23",
+      date_to: "2026-11-23",
+      limit: 10000,
+      offset: 20000,
+    })),
+    ...(await getGTFSStopsList({
+      date_from: "2026-11-23",
+      date_to: "2026-11-23",
+      limit: 10000,
+      offset: 30000,
+    })),
+  ];
+}
+
 /** NOTE: The returned stops' data is according to OpenBus gtfs' data, and NOT the siri data.
  TODO: do an actual radius and not whatever this is
 * */
-async function getStationsByRadius(
+async function getStopsByRadius(
   lon: FieldTypes["Longitude"],
   lat: FieldTypes["Latitude"],
   radius: number,
@@ -189,7 +234,7 @@ async function getStationsByRadius(
   }));
 }
 
-async function getStationsByCordBounds(
+async function getStopsByCordBounds(
   northEastLat: number,
   northEastLon: number,
   southWestLat: number,
@@ -200,19 +245,32 @@ async function getStationsByCordBounds(
     gtfs_stop__lat__lower_or_equal: northEastLat,
     gtfs_stop__lon__greater_or_equal: southWestLon,
     gtfs_stop__lon__lower_or_equal: northEastLon,
+    gtfs_date_from: "2026-11-23", // TODO: temporary magic number
+    gtfs_date_to: "2026-11-23",
+    limit: 10000,
   });
-  console.log(openBusStopListByRadius);
-  return openBusStopListByRadius.map((openBusStop) => ({
-    stopId: String(openBusStop.gtfs_ride_stop__gtfs_stop_id),
-    stopLat: openBusStop.gtfs_stop__lat,
-    stopLon: openBusStop.gtfs_stop__lon,
-    stopCode: String(openBusStop.gtfs_stop__code),
-    stopName: openBusStop.gtfs_stop__name,
-  }));
+
+  const result: Stop[] = [];
+  for (const openBusStop of openBusStopListByRadius) {
+    const isDuplicate = result.find(
+      (s) => s.stopCode === String(openBusStop.gtfs_stop__code),
+    );
+
+    if (!isDuplicate)
+      result.push({
+        stopId: String(openBusStop.gtfs_ride_stop__gtfs_stop_id),
+        stopLat: openBusStop.gtfs_stop__lat,
+        stopLon: openBusStop.gtfs_stop__lon,
+        stopCode: String(openBusStop.gtfs_stop__code),
+        stopName: openBusStop.gtfs_stop__name,
+      });
+  }
+
+  return result;
 }
 
-
 export const gtfsFunctionImplementation: GtfsPackage = {
-  getStationsByRadius,
-  getStationsByCordBounds
+  getStops,
+  getStopsByRadius,
+  getStopsByCordBounds,
 };

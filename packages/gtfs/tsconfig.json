@@ -2,7 +2,8 @@
   "extends": "../../tsconfigBase.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "./build"
+    "outDir": "./build",
+    "lib": ["esnext"]
   },
   "include": ["./index.mts", "consts", "types"],
   "exclude": ["node_modules", "build"]

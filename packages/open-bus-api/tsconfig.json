@@ -2,7 +2,9 @@
   "extends": "../../tsconfigBase.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "./build"
+    "outDir": "./build",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "ESNext", "esnext.temporal"]
   },
   "include": ["./index.mts", "consts", "types", "functions"],
   "exclude": ["node_modules", "build"]
