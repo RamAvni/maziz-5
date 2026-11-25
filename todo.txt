@@ -34,3 +34,9 @@ v/ Show GTFS bus stops according to a certain location
 
 ! Stage Four: make stuff prettyyyyyyyyyyyyyy
 
+! Stage Five: True Navigation
+:O Connect to a live SIRI api
+:O Plan how to show differences in GTFS against SIRI times to the user (UX)
+:O Show incoming busses (in the next 10m for example)
+:O Show SIRI times for every navigation
+
